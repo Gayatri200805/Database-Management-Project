@@ -1,0 +1,86 @@
+-- Database: Indirect Voting System for President of India
+
+-- 1. States Table
+CREATE TABLE States (
+    state_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL
+);
+
+-- 2. Candidates Table
+CREATE TABLE Candidates (
+    cid INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    party VARCHAR(100)
+);
+
+-- 3. MLAs Table
+CREATE TABLE MLAs (
+    mla_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    state_id INT,
+    weightage INT NOT NULL,
+    FOREIGN KEY (state_id) REFERENCES States(state_id)
+);
+
+-- 4. Votes Table
+CREATE TABLE Votes (
+    vote_id INT AUTO_INCREMENT PRIMARY KEY,
+    mla_id INT,
+    cid INT,
+    FOREIGN KEY (mla_id) REFERENCES MLAs(mla_id),
+    FOREIGN KEY (cid) REFERENCES Candidates(cid)
+);
+
+-- Insert sample States
+INSERT INTO States (name) VALUES
+('Andhra Pradesh'),
+('Telangana'),
+('Karnataka'),
+('Tamil Nadu');
+
+-- Insert Candidates
+INSERT INTO Candidates (name, party) VALUES
+('Lekhesh', 'Party A'),
+('Gayathri', 'Party B'),
+('Suchithra', 'Party C');
+
+-- Insert MLAs
+INSERT INTO MLAs (name, state_id, weightage) VALUES
+('MLA1', 1, 2),
+('MLA2', 1, 2),
+('MLA3', 2, 3),
+('MLA4', 2, 3),
+('MLA5', 3, 4),
+('MLA6', 4, 5);
+
+-- Insert Votes
+INSERT INTO Votes (mla_id, cid) VALUES
+(1, 1),
+(2, 2),
+(3, 1),
+(4, 3),
+(5, 2),
+(6, 1);
+
+-- Simple vote count
+SELECT c.name AS Candidate, COUNT(v.vote_id) AS Total_Votes
+FROM Candidates c
+LEFT JOIN Votes v ON c.cid = v.cid
+GROUP BY c.name;
+
+-- Weighted vote count
+SELECT c.name AS Candidate, SUM(m.weightage) AS Weighted_Votes
+FROM Votes v
+JOIN MLAs m ON v.mla_id = m.mla_id
+JOIN Candidates c ON v.cid = c.cid
+GROUP BY c.name
+ORDER BY Weighted_Votes DESC;
+
+-- Winner
+SELECT c.name AS Winner, c.party, SUM(m.weightage) AS Total_Weighted_Votes
+FROM Votes v
+JOIN MLAs m ON v.mla_id = m.mla_id
+JOIN Candidates c ON v.cid = c.cid
+GROUP BY c.cid
+ORDER BY Total_Weighted_Votes DESC
+LIMIT 1;
